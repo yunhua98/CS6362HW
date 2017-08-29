@@ -74,8 +74,16 @@ public class Learn {
 	
 
 	private static Predictor train(List<Instance> instances, String algorithm) {
-	    // TODO Train the model using "algorithm" on "data"
-	    // TODO Evaluate the model
+	    if (algorithm.equalsIgnoreCase("majority")) {
+	    	MajorityPredictor predictor = new MajorityPredictor();
+	    	predictor.train(instances);
+	    	return predictor;
+	    }
+	    if (algorithm.equalsIgnoreCase("even_odd")) {
+	    	EvenOddPredictor predictor = new EvenOddPredictor();
+	    	predictor.train(instances);
+	    	return predictor;
+	    }
 
 	    return null;
 	}
