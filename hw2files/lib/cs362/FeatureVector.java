@@ -26,4 +26,8 @@ public class FeatureVector implements Serializable {
         return _elements.keySet().iterator();
     }
 
+    public int size() {
+    	return _elements.lastKey();
+    }
+
 }

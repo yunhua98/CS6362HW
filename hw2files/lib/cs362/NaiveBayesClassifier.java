@@ -19,13 +19,9 @@ public class NaiveBayesClassifier extends Predictor {
 		int maxIndex = 0;
 		for (int i = 0; i < instances.size(); ++i) {
 			Instance inst = instances.get(i);
-			Iterator<Integer> iter = inst.getFeatureVector().indexIterator();
-			int lastIndex = 0;
-			while (iter.hasNext()) {
-				lastIndex = iter.next();
-			}
-			if (lastIndex > maxIndex) {
-				maxIndex = lastIndex;
+			FeatureVector vec = inst.getFeatureVector();
+			if (vec.size() > maxIndex) {
+				maxIndex = vec.size();
 			}
 		}
 

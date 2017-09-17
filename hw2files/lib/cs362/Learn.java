@@ -39,10 +39,21 @@ public class Learn {
 		    classify = false;
 		}
 
+		// Setting lambda for Naive Bayes classifier
 		double lambda = 1.0;
 		if (CommandLineUtilities.hasArg("lambda"))
     		lambda = CommandLineUtilities.getOptionValueAsFloat("lambda");
 		
+		// Setting learning rate for Perceptron
+		double online_learning_rate = 1.0;
+		if (CommandLineUtilities.hasArg("online_learning_rate"))
+    		online_learning_rate = CommandLineUtilities.getOptionValueAsFloat("online_learning_rate");
+
+    	// Setting number of iterations for Perceptron
+    	int online_training_iterations = 1;
+		if (CommandLineUtilities.hasArg("online_training_iterations"))
+    		online_training_iterations = CommandLineUtilities.getOptionValueAsInt("online_training_iterations");
+
 		if (mode.equalsIgnoreCase("train")) {
 			if (data == null || algorithm == null || model_file == null) {
 				System.out.println("Train requires the following arguments: data, algorithm, model_file");
@@ -54,7 +65,7 @@ public class Learn {
 			data_reader.close();
 
 			// Train the model.
-			Predictor predictor = train(instances, algorithm, lambda);
+			Predictor predictor = train(instances, algorithm, lambda, online_learning_rate, online_training_iterations);
 			saveObject(predictor, model_file);		
 			
 		} else if (mode.equalsIgnoreCase("test")) {
@@ -77,7 +88,7 @@ public class Learn {
 	}
 	
 
-	private static Predictor train(List<Instance> instances, String algorithm, double lambda) {
+	private static Predictor train(List<Instance> instances, String algorithm, double lambda, double online_learning_rate, int online_training_iterations) {
 	    if (algorithm.equalsIgnoreCase("majority")) {
 	    	MajorityPredictor predictor = new MajorityPredictor();
 	    	predictor.train(instances);
@@ -95,6 +106,11 @@ public class Learn {
 	    }
 	    if (algorithm.equalsIgnoreCase("naive_bayes")) {
 	    	NaiveBayesClassifier predictor = new NaiveBayesClassifier(lambda);
+	    	predictor.train(instances);
+	    	return predictor;
+	    }
+	    if (algorithm.equalsIgnoreCase("perceptron")) {
+	    	PerceptronClassifier predictor = new PerceptronClassifier(online_learning_rate, online_training_iterations);
 	    	predictor.train(instances);
 	    	return predictor;
 	    }
@@ -166,7 +182,9 @@ public class Learn {
 		registerOption("model_file", "String", true, "The name of the model file to create/load.");
 		registerOption("task", "String", true, "The name of the task (classification or regression).");
 		registerOption("lambda", "double", true, "The level of smoothing for Naive Bayes.");
-		
+		registerOption("online_learning_rate", "double", true, "The LTU learning rate.");
+		registerOption("online_training_iterations", "int", true, "The number of training iterations for LTU.");
+
 		// Other options will be added here.
 	}
 }
