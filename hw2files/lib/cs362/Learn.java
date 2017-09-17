@@ -38,6 +38,10 @@ public class Learn {
 		if (task != null && task.equals("regression")) {
 		    classify = false;
 		}
+
+		double lambda = 1.0;
+		if (CommandLineUtilities.hasArg("lambda"))
+    		lambda = CommandLineUtilities.getOptionValueAsFloat("lambda");
 		
 		if (mode.equalsIgnoreCase("train")) {
 			if (data == null || algorithm == null || model_file == null) {
@@ -48,9 +52,9 @@ public class Learn {
 			DataReader data_reader = new DataReader(data, classify);
 			List<Instance> instances = data_reader.readData();
 			data_reader.close();
-			
+
 			// Train the model.
-			Predictor predictor = train(instances, algorithm);
+			Predictor predictor = train(instances, algorithm, lambda);
 			saveObject(predictor, model_file);		
 			
 		} else if (mode.equalsIgnoreCase("test")) {
@@ -73,7 +77,7 @@ public class Learn {
 	}
 	
 
-	private static Predictor train(List<Instance> instances, String algorithm) {
+	private static Predictor train(List<Instance> instances, String algorithm, double lambda) {
 	    if (algorithm.equalsIgnoreCase("majority")) {
 	    	MajorityPredictor predictor = new MajorityPredictor();
 	    	predictor.train(instances);
@@ -81,6 +85,16 @@ public class Learn {
 	    }
 	    if (algorithm.equalsIgnoreCase("even_odd")) {
 	    	EvenOddPredictor predictor = new EvenOddPredictor();
+	    	predictor.train(instances);
+	    	return predictor;
+	    }
+	    if (algorithm.equalsIgnoreCase("linear_regression")) {
+	    	LinearRegressionPredictor predictor = new LinearRegressionPredictor();
+	    	predictor.train(instances);
+	    	return predictor;
+	    }
+	    if (algorithm.equalsIgnoreCase("naive_bayes")) {
+	    	NaiveBayesClassifier predictor = new NaiveBayesClassifier(lambda);
 	    	predictor.train(instances);
 	    	return predictor;
 	    }
@@ -151,6 +165,7 @@ public class Learn {
 		registerOption("algorithm", "String", true, "The name of the algorithm for training.");
 		registerOption("model_file", "String", true, "The name of the model file to create/load.");
 		registerOption("task", "String", true, "The name of the task (classification or regression).");
+		registerOption("lambda", "double", true, "The level of smoothing for Naive Bayes.");
 		
 		// Other options will be added here.
 	}
