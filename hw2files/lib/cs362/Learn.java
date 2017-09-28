@@ -20,6 +20,17 @@ import java.util.regex.Pattern;
 public class Learn {
 	static public LinkedList<Option> options = new LinkedList<Option>();
 	
+	private class TrainingOpts {
+		double lambda;
+		double online_learning_rate;
+		int online_training_iterations;
+		String kernel;
+		double polynomial_kernel_exponent;
+		double gaussian_kernel_sigma;
+		double gradient_ascent_learning_rate;
+		int gradient_ascent_training_iterations;
+	}
+
 	public static void main(String[] args) throws IOException {
 		// Parse the command line.
 		String[] manditory_args = { "mode"};
@@ -39,20 +50,43 @@ public class Learn {
 		    classify = false;
 		}
 
+		TrainingOpts opts = new TrainingOpts();
+
 		// Setting lambda for Naive Bayes classifier
-		double lambda = 1.0;
+		opts.lambda = 1.0;
 		if (CommandLineUtilities.hasArg("lambda"))
-    		lambda = CommandLineUtilities.getOptionValueAsFloat("lambda");
+    		opts.lambda = CommandLineUtilities.getOptionValueAsFloat("lambda");
 		
 		// Setting learning rate for Perceptron
-		double online_learning_rate = 1.0;
+		opts.online_learning_rate = 1.0;
 		if (CommandLineUtilities.hasArg("online_learning_rate"))
-    		online_learning_rate = CommandLineUtilities.getOptionValueAsFloat("online_learning_rate");
+    		opts.online_learning_rate = CommandLineUtilities.getOptionValueAsFloat("online_learning_rate");
 
     	// Setting number of iterations for Perceptron
-    	int online_training_iterations = 1;
+    	opts.online_training_iterations = 1;
 		if (CommandLineUtilities.hasArg("online_training_iterations"))
-    		online_training_iterations = CommandLineUtilities.getOptionValueAsInt("online_training_iterations");
+    		opts.online_training_iterations = CommandLineUtilities.getOptionValueAsInt("online_training_iterations");
+
+    	// Setting kernel type for kernel logistic regression
+    	opts.kernel = "linear_kernel";
+		if (CommandLineUtilities.hasArg("kernel"))
+   			opts.kernel = CommandLineUtilities.getOptionValue("kernel");
+
+   		opts.polynomial_kernel_exponent = 2;
+		if (CommandLineUtilities.hasArg("polynomial_kernel_exponent"))
+			opts.polynomial_kernel_exponent = CommandLineUtilities.getOptionValueAsFloat("polynomial_kernel_exponent");
+
+		opts.gaussian_kernel_sigma = 1;
+		if (CommandLineUtilities.hasArg("gaussian_kernel_sigma"))
+   			opts.gaussian_kernel_sigma = CommandLineUtilities.getOptionValueAsFloat("gaussian_kernel_sigma");
+
+   		opts.gradient_ascent_learning_rate = 0.01;
+   		if (CommandLineUtilities.hasArg("gradient_ascent_learning_rate"))
+   			opts.gradient_ascent_learning_rate = CommandLineUtilities.getOptionValueAsFloat("gradient_ascent_learning_rate");
+
+   		opts.gradient_ascent_training_iterations = 5;
+   		if (CommandLineUtilities.hasArg("gradient_ascent_training_iterations"))
+   			opts.gradient_ascent_training_iterations = CommandLineUtilities.getOptionValueAsInt("gradient_ascent_training_iterations");
 
 		if (mode.equalsIgnoreCase("train")) {
 			if (data == null || algorithm == null || model_file == null) {
@@ -65,7 +99,7 @@ public class Learn {
 			data_reader.close();
 
 			// Train the model.
-			Predictor predictor = train(instances, algorithm, lambda, online_learning_rate, online_training_iterations);
+			Predictor predictor = train(instances, algorithm, opts);
 			saveObject(predictor, model_file);		
 			
 		} else if (mode.equalsIgnoreCase("test")) {
@@ -86,9 +120,8 @@ public class Learn {
 			System.out.println("Requires mode argument.");
 		}
 	}
-	
 
-	private static Predictor train(List<Instance> instances, String algorithm, double lambda, double online_learning_rate, int online_training_iterations) {
+	private static Predictor train(List<Instance> instances, String algorithm, TrainingOpts opts) {
 	    if (algorithm.equalsIgnoreCase("majority")) {
 	    	MajorityPredictor predictor = new MajorityPredictor();
 	    	predictor.train(instances);
@@ -105,12 +138,26 @@ public class Learn {
 	    	return predictor;
 	    }
 	    if (algorithm.equalsIgnoreCase("naive_bayes")) {
-	    	NaiveBayesClassifier predictor = new NaiveBayesClassifier(lambda);
+	    	NaiveBayesClassifier predictor = new NaiveBayesClassifier(opts.lambda);
 	    	predictor.train(instances);
 	    	return predictor;
 	    }
 	    if (algorithm.equalsIgnoreCase("perceptron")) {
-	    	PerceptronClassifier predictor = new PerceptronClassifier(online_learning_rate, online_training_iterations);
+	    	PerceptronClassifier predictor = new PerceptronClassifier(opts.online_learning_rate, opts.online_training_iterations);
+	    	predictor.train(instances);
+	    	return predictor;
+	    }
+	    if (algorithm.equalsIgnoreCase("kernel_logistic_regression")) {
+	    	KernelLogisticRegression predictor;
+
+	    	if (opts.kernel.equalsIgnoreCase("linear_kernel")) {
+	    		predictor = new LinearKernelLogisticRegression(opts.gradient_ascent_learning_rate, opts.gradient_ascent_training_iterations);
+	    	} else if (opts.kernel.equalsIgnoreCase("polynomial_kernel")) {
+
+	    	} else if (opts.kernel.equalsIgnoreCase("gaussian_kernel")) {
+
+	    	}
+
 	    	predictor.train(instances);
 	    	return predictor;
 	    }
@@ -184,7 +231,11 @@ public class Learn {
 		registerOption("lambda", "double", true, "The level of smoothing for Naive Bayes.");
 		registerOption("online_learning_rate", "double", true, "The LTU learning rate.");
 		registerOption("online_training_iterations", "int", true, "The number of training iterations for LTU.");
-
+		registerOption("kernel", "String", true, "The kernel for Kernel Logistic regression [linear_kernel, polynomial_kernel, gaussian_kernel].");
+		registerOption("polynomial_kernel_exponent", "double", true, "The exponent of the polynomial kernel.");
+		registerOption("gaussian_kernel_sigma", "double", true, "The sigma of the Gaussian kernel.");
+		registerOption("gradient_ascent_learning_rate", "double", true, "The learning rate for logistic regression.");
+		registerOption("gradient_ascent_training_iterations", "int", true, "The number of training iterations.");
 		// Other options will be added here.
 	}
 }
